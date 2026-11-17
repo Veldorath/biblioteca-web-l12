@@ -1,3 +1,4 @@
+import { GATEWAY } from './biblioteca';
 import { Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
@@ -47,7 +48,7 @@ export class App {
   cargarPanel(): void {
     this.cargando.set(true);
     this.http
-      .get<{ prestamos: PrestamoConLibro[] }>('http://localhost:8080/v1/panel')
+      .get<{ prestamos: PrestamoConLibro[] }>(`${GATEWAY}/v1/panel`)
       .subscribe({
         next: (r) => { this.panel.set(r.prestamos); this.cargando.set(false); },
         error: (e) => { console.error('el panel fallo:', e.status, e.error); this.cargando.set(false); },
@@ -56,7 +57,7 @@ export class App {
 
   pedirPrestamo(libroId: number): void {
     this.http
-      .post('http://localhost:8080/v1/panel/prestamos', { libroId })
+      .post(`${GATEWAY}/v1/panel/prestamos`, { libroId })
       .subscribe({
         next: () => this.cargarPanel(),
         error: (e) => console.error('el prestamo fallo:', e.status, e.error),

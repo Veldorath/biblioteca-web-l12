@@ -1,12 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { from, switchMap } from 'rxjs';
-
-// Lista blanca: a quien se le manda el token. Nada mas.
-const PERMITIDOS = ['http://localhost:8080'];   // solo tu gateway
+import { GATEWAY } from '../biblioteca';
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
-  if (!PERMITIDOS.some((base) => req.url.startsWith(base))) {
+  if (!req.url.startsWith(`${GATEWAY}/v1/`)) {
     return next(req);
   }
 

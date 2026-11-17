@@ -1,0 +1,23 @@
+{
+	email {$CORREO:pa.castroj@duocuc.cl}
+	# Primera vez: staging de Let's Encrypt. Cuando sale, se comenta y se reinicia una vez.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# DOMINIO llega del compose de gw-azure (biblioteca-l10-veldorath.brazilsouth.cloudapp.azure.com): con un
+# nombre, Caddy saca el certificado solo. Sin DOMINIO (compose local) sirve HTTP en el 80.
+{$DOMINIO::80} {
+	encode gzip
+
+	# La API va al gateway, que corre en la misma maquina en el 8080 (network_mode: host).
+	handle /v1/* {
+		reverse_proxy {$GATEWAY:127.0.0.1:8080}
+	}
+
+	# El Angular compilado esta en /srv. Las rutas de Angular (/callback, /panel) caen en index.html.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,4 +1,9 @@
-# biblioteca-web: dos etapas. Node (node:24-slim) compila el Angular; nginx sirve lo compilado.
+# biblioteca-web (E3): una sola imagen con el Angular compilado y Caddy, que lo sirve.
+# En gw-azure corre con network_mode: host y el volumen /data (certificados de Let's Encrypt);
+# Caddy sirve las rutas de Angular con try_files y pasa /v1/* al gateway en 127.0.0.1:8080.
+# En el compose local de biblioteca-plataforma, sin DOMINIO, sirve HTTP en el 80 del contenedor.
+
+# Etapa 1: compila Angular con las dependencias de desarrollo
 FROM node:24-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -6,7 +11,7 @@ RUN npm ci
 COPY . .
 RUN npx ng build
 
-FROM nginx:1.29-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/biblioteca-web/browser /usr/share/nginx/html
-EXPOSE 80
+# Etapa 2: Caddy sirve lo compilado
+FROM caddy:2
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/dist/biblioteca-web/browser/ /srv/
